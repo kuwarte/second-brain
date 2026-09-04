@@ -1,0 +1,38 @@
+# Environment
+.env
+
+# Java / Maven (api/)
+api/target/
+api/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+
+# IDE - Eclipse
+api/.settings/
+api/.classpath
+api/.project
+api/.factorypath
+
+# IDE - IntelliJ
+.idea/
+*.iml
+
+# IDE - VS Code
+.vscode/
+
+# Node / Next.js (web/)
+web/node_modules/
+web/.next/
+web/out/
+web/.env.local
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+pgdata/
