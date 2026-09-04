@@ -1,7 +1,43 @@
 spring:
   application:
     name: api
+
   datasource:
-    url: jdbc:postgresql://localhost:5433/knowledgebase
-    username: appuser
-    password: apppassword
+    url: jdbc:postgresql://localhost:5433/${POSTGRES_DB:knowledgebase}
+    username: ${POSTGRES_USER:appuser}
+    password: ${POSTGRES_PASSWORD:apppassword}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+server:
+  port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:change-this-to-a-long-random-string}
+  expiration-minutes: 1440
+
+ollama:
+  base-url: http://localhost:11434
+  chat-model: qwen2.5:1.5b
+  embedding-model: nomic-embed-text
+
+logging:
+  level:
+    com.kuwarte.api: DEBUG
+    org.flywaydb: INFO
