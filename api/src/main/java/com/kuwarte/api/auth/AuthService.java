@@ -6,22 +6,22 @@ import com.kuwarte.api.auth.dto.RegisterRequest;
 import com.kuwarte.api.auth.exception.EmailAlreadyExistsException;
 import com.kuwarte.api.auth.exception.InvalidCredentialsException;
 import com.kuwarte.api.security.JwtService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-    }
+    private final AuthenticationManager authenticationManager;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -29,19 +29,26 @@ public class AuthService {
             throw new EmailAlreadyExistsException(request.email());
         }
 
-        User user = new User(request.email(), passwordEncoder.encode(request.password()));
+        User user = User.builder()
+                .email(request.email())
+                .passwordHash(passwordEncoder.encode(request.password()))
+                .build();
+
         userRepository.save(user);
 
         return issueToken(user);
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(InvalidCredentialsException::new);
-
-        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+        } catch (BadCredentialsException e) {
             throw new InvalidCredentialsException();
         }
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(InvalidCredentialsException::new);
 
         return issueToken(user);
     }

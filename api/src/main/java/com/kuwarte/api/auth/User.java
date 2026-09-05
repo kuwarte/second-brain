@@ -1,12 +1,22 @@
 package com.kuwarte.api.auth;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
 
     @Id
@@ -22,33 +32,8 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    protected User() {
-        // JPA
-    }
-
-    public User(String email, String passwordHash) {
-        this.email = email;
-        this.passwordHash = passwordHash;
-    }
-
     @PrePersist
     void onCreate() {
         this.createdAt = Instant.now();
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
     }
 }
