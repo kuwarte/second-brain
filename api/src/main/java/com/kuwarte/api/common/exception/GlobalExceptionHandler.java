@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TextExtractor.TextExtractionException.class)
     public ResponseEntity<Map<String, Object>> handleTextExtractionFailure(
             TextExtractor.TextExtractionException ex) {
-        return errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        return errorResponse(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
     }
 
     @ExceptionHandler(OllamaClient.OllamaException.class)

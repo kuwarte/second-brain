@@ -11,9 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kuwarte.api.document.TextExtractor;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +27,7 @@ public class DocumentController {
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<DocumentResponse> upload(
             @AuthenticationPrincipal UserPrincipal principal,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file) throws IOException {
 
         String contentType = file.getContentType();
         if (contentType == null || !TextExtractor.SUPPORTED_CONTENT_TYPES.contains(contentType)) {
@@ -39,16 +37,12 @@ public class DocumentController {
         Document document = Document.builder()
                 .user(principal.getUser())
                 .filename(file.getOriginalFilename())
-                .contentType(file.getContentType())
+                .contentType(contentType)
                 .build();
         documentRepository.save(document);
 
-        try {
-            // Synchronous for now: the request waits for ingestion to finish.
-            ingestionService.ingest(document, file.getInputStream());
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to read uploaded file", e);
-        }
+        byte[] fileBytes = file.getBytes(); // read now, while the request/stream is still valid
+        ingestionService.ingest(document, fileBytes); // returns immediately — @Async
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DocumentResponse.toResponse(document));
     }

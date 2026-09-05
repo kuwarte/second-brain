@@ -1,9 +1,14 @@
 package com.kuwarte.api.ollama;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.HttpClientSettings;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+
+import java.time.Duration;
 
 @Configuration
 public class OllamaConfig {
@@ -14,15 +19,20 @@ public class OllamaConfig {
     @Value("${ollama.connect-timeout-seconds:5}")
     private long connectTimeoutSeconds;
 
-    @Value("${ollama.read-timeout-seconds:120}")
+    @Value("${ollama.read-timeout-seconds:60}")
     private long readTimeoutSeconds;
 
     @Bean
     public RestClient ollamaRestClient() {
-        ClientHttpRequestFactorySettings settings = ClientHttpRequestFactorySettings.defaults()
+        HttpClientSettings settings = HttpClientSettings.defaults()
                 .withConnectTimeout(Duration.ofSeconds(connectTimeoutSeconds))
                 .withReadTimeout(Duration.ofSeconds(readTimeoutSeconds));
+
         ClientHttpRequestFactory requestFactory = ClientHttpRequestFactoryBuilder.detect().build(settings);
-        return RestClient.builder().baseUrl(baseUrl).requestFactory(requestFactory).build();
+
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(requestFactory)
+                .build();
     }
 }
