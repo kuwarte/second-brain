@@ -11,7 +11,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/conversations")
@@ -52,15 +54,22 @@ public class ChatController {
 
         Conversation conversation = requireOwnedConversation(principal, id);
 
-        return messageRepository.findAllByConversationIdOrderByCreatedAtAsc(conversation.getId())
+        List<Message> conversationMessages = messageRepository
+                .findAllByConversationIdOrderByCreatedAtAsc(conversation.getId());
+
+        List<UUID> messageIds = conversationMessages.stream().map(Message::getId).toList();
+
+        Map<UUID, List<CitationResponse>> citationsByMessageId = citationRepository
+                .findAllByMessageIdIn(messageIds)
                 .stream()
-                .map(message -> {
-                    List<CitationResponse> citations = citationRepository.findAll().stream()
-                            .filter(c -> c.getMessage().getId().equals(message.getId()))
-                            .map(c -> CitationResponse.toResponse(c.getChunk()))
-                            .toList();
-                    return MessageResponse.toResponse(message, citations);
-                })
+                .collect(Collectors.groupingBy(
+                        c -> c.getMessage().getId(),
+                        Collectors.mapping(c -> CitationResponse.toResponse(c.getChunk()), Collectors.toList())));
+
+        return conversationMessages.stream()
+                .map(message -> MessageResponse.toResponse(
+                        message,
+                        citationsByMessageId.getOrDefault(message.getId(), List.of())))
                 .toList();
     }
 

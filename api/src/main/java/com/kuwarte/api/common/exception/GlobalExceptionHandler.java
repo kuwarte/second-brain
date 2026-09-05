@@ -2,6 +2,8 @@ package com.kuwarte.api.common.exception;
 
 import com.kuwarte.api.auth.exception.EmailAlreadyExistsException;
 import com.kuwarte.api.auth.exception.InvalidCredentialsException;
+import com.kuwarte.api.document.TextExtractor;
+import com.kuwarte.api.ollama.OllamaClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -26,11 +28,27 @@ public class GlobalExceptionHandler {
         return errorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
-    // @ExceptionHandler(ResourceNotFoundException.class)
-    // public ResponseEntity<Map<String, Object>>
-    // handleNotFound(ResourceNotFoundException ex) {
-    // return errorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-    // }
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+        return errorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(TextExtractor.UnsupportedFileTypeException.class)
+    public ResponseEntity<Map<String, Object>> handleUnsupportedFileType(
+            TextExtractor.UnsupportedFileTypeException ex) {
+        return errorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(TextExtractor.TextExtractionException.class)
+    public ResponseEntity<Map<String, Object>> handleTextExtractionFailure(
+            TextExtractor.TextExtractionException ex) {
+        return errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+    }
+
+    @ExceptionHandler(OllamaClient.OllamaException.class)
+    public ResponseEntity<Map<String, Object>> handleOllamaFailure(OllamaClient.OllamaException ex) {
+        return errorResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
