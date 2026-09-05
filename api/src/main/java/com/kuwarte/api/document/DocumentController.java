@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kuwarte.api.document.TextExtractor;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
@@ -29,6 +30,11 @@ public class DocumentController {
     public ResponseEntity<DocumentResponse> upload(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam("file") MultipartFile file) {
+
+        String contentType = file.getContentType();
+        if (contentType == null || !TextExtractor.SUPPORTED_CONTENT_TYPES.contains(contentType)) {
+            throw new TextExtractor.UnsupportedFileTypeException(contentType);
+        }
 
         Document document = Document.builder()
                 .user(principal.getUser())

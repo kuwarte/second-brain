@@ -5,6 +5,7 @@ import com.kuwarte.api.auth.dto.LoginRequest;
 import com.kuwarte.api.auth.dto.RegisterRequest;
 import com.kuwarte.api.auth.exception.EmailAlreadyExistsException;
 import com.kuwarte.api.auth.exception.InvalidCredentialsException;
+import com.kuwarte.api.preferences.UserPreferencesService;
 import com.kuwarte.api.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +23,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UserPreferencesService preferencesService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -35,6 +37,7 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
+        preferencesService.createDefaultsFor(user);
 
         return issueToken(user);
     }

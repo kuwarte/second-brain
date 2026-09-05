@@ -14,6 +14,12 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class TextExtractor {
 
+    public static final Set<String> SUPPORTED_CONTENT_TYPES = Set.of(
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "text/markdown",
+            "text/plain");
+
     public String extract(InputStream inputStream, String contentType) {
         try {
             return switch (contentType) {

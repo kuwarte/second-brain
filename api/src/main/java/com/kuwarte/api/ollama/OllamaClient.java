@@ -41,9 +41,13 @@ public class OllamaClient {
     }
 
     public String generate(String prompt) {
+        return generate(prompt, chatModel);
+    }
+
+    public String generate(String prompt, String model) {
         GenerateResponse response = ollamaRestClient.post()
                 .uri("/api/generate")
-                .body(GenerateRequest.of(chatModel, prompt))
+                .body(GenerateRequest.of(model, prompt))
                 .retrieve()
                 .body(GenerateResponse.class);
 
