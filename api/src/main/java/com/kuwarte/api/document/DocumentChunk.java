@@ -11,6 +11,11 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import com.pgvector.PGvector;
+
 @Entity
 @Table(name = "document_chunks")
 @Getter
@@ -35,8 +40,9 @@ public class DocumentChunk {
     @Column(name = "chunk_index", nullable = false)
     private int chunkIndex;
 
-    // Embedding column added once com.pgvector:pgvector type mapping is wired
-    // up in the ollama/ integration phase.
+    @JdbcTypeCode(SqlTypes.OTHER)
+    @Column(columnDefinition = "vector(768)")
+    private PGvector embedding;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(AccessLevel.NONE)

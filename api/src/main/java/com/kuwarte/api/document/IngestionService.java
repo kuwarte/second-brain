@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kuwarte.api.document.enums.DocumentStatus;
+import com.kuwarte.api.ollama.OllamaClient;
+import com.pgvector.PGvector;
 
 import java.io.InputStream;
 import java.util.List;
@@ -22,6 +24,7 @@ public class IngestionService {
     private final ChunkingService chunkingService;
     private final DocumentRepository documentRepository;
     private final ChunkRepository chunkRepository;
+    private final OllamaClient ollamaClient;
 
     /**
      * Runs the full ingestion pipeline for a document that's already been
@@ -39,13 +42,22 @@ public class IngestionService {
 
         try {
             String text = textExtractor.extract(fileStream, document.getContentType());
-            List<String> chunks = chunkingService.chunk(text, DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP);
+            List<String> chunkTexts = chunkingService.chunk(text, DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP);
 
-            for (int i = 0; i < chunks.size(); i++) {
+            if (chunkTexts.isEmpty()) {
+                throw new IllegalStateException("No extractable text found in file");
+            }
+
+            List<List<Float>> embeddings = ollamaClient.embed(chunkTexts);
+
+            for (int i = 0; i < chunkTexts.size(); i++) {
+                PGvector vector = toPGvector(embeddings.get(i));
+
                 DocumentChunk chunk = DocumentChunk.builder()
                         .document(document)
-                        .content(chunks.get(i))
+                        .content(chunkTexts.get(i))
                         .chunkIndex(i)
+                        .embedding(vector)
                         .build();
                 chunkRepository.save(chunk);
             }
@@ -53,12 +65,20 @@ public class IngestionService {
             document.setStatus(DocumentStatus.READY);
             documentRepository.save(document);
 
-            log.info("Ingested document {} into {} chunks", document.getId(), chunks.size());
+            log.info("Ingested document {} into {} chunks", document.getId(), chunkTexts.size());
 
         } catch (Exception e) {
             log.error("Ingestion failed for document {}", document.getId(), e);
             document.setStatus(DocumentStatus.FAILED);
             documentRepository.save(document);
         }
+    }
+
+    private PGvector toPGvector(List<Float> embedding) {
+        float[] array = new float[embedding.size()];
+        for (int i = 0; i < embedding.size(); i++) {
+            array[i] = embedding.get(i);
+        }
+        return new PGvector(array);
     }
 }
