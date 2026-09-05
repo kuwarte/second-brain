@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5433}/${POSTGRES_DB:knowledgebase}
+    username: ${POSTGRES_USER:appuser}
+    password: ${POSTGRES_PASSWORD:apppassword}
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    com.kuwarte.api: DEBUG
