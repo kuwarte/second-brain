@@ -28,7 +28,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
         writeError(response, HttpStatus.UNAUTHORIZED, "Authentication is required to access this resource");
     }
 
-    private void writeError(HttpServletResponse response, HttpStatus status, String message) throws IOException {
+    public void writeError(HttpServletResponse response, HttpStatus status, String message) throws IOException {
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
