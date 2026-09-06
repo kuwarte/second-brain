@@ -11,8 +11,18 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
+import type { ChatProvider } from "@/types/preferences";
 
-const CHAT_MODELS = ["qwen3.5:0.8b", "llama3.2", "llama3.1", "mistral"];
+const PROVIDERS: { value: ChatProvider; label: string }[] = [
+    { value: "OLLAMA", label: "Ollama (local)" },
+    { value: "GROQ", label: "Groq (cloud)" },
+];
+
+const MODELS_BY_PROVIDER: Record<ChatProvider, string[]> = {
+    OLLAMA: ["qwen3.5:0.8b", "llama3.2", "llama3.1", "mistral"],
+    GROQ: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"],
+};
+
 const EMBEDDING_MODELS = ["nomic-embed-text", "mxbai-embed-large"];
 
 export function PreferencesForm() {
@@ -39,20 +49,51 @@ export function PreferencesForm() {
         toast.success("Preferences saved");
     }
 
+    const provider = preferences?.chatProvider ?? "OLLAMA";
+    const modelsForProvider = MODELS_BY_PROVIDER[provider];
+
     return (
         <div className="rounded-md border">
             <FieldGroup className="divide-y">
                 <Field orientation="horizontal" className="p-4">
                     <div>
-                        <FieldLabel>Chat model</FieldLabel>
-                        <FieldDescription>Used to generate answers</FieldDescription>
+                        <FieldLabel>Provider</FieldLabel>
+                        <FieldDescription>Where chat responses are generated</FieldDescription>
                     </div>
-                    <Select value={preferences?.chatModel} onValueChange={(value) => update.mutate({ chatModel: value }, { onSuccess: saveOk })}>
+                    <Select
+                        value={provider}
+                        onValueChange={(value: ChatProvider) => {
+                            const nextModel = MODELS_BY_PROVIDER[value][0];
+                            update.mutate({ chatProvider: value, chatModel: nextModel }, { onSuccess: saveOk });
+                        }}
+                    >
                         <SelectTrigger className="w-44 font-mono text-xs">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            {CHAT_MODELS.map((model) => (
+                            {PROVIDERS.map((p) => (
+                                <SelectItem key={p.value} value={p.value} className="font-mono text-xs">
+                                    {p.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </Field>
+
+                <Field orientation="horizontal" className="p-4">
+                    <div>
+                        <FieldLabel>Chat model</FieldLabel>
+                        <FieldDescription>Used to generate answers</FieldDescription>
+                    </div>
+                    <Select
+                        value={preferences?.chatModel}
+                        onValueChange={(value) => update.mutate({ chatModel: value }, { onSuccess: saveOk })}
+                    >
+                        <SelectTrigger className="w-44 font-mono text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {modelsForProvider.map((model) => (
                                 <SelectItem key={model} value={model} className="font-mono text-xs">
                                     {model}
                                 </SelectItem>
@@ -64,9 +105,12 @@ export function PreferencesForm() {
                 <Field orientation="horizontal" className="p-4">
                     <div>
                         <FieldLabel>Embedding model</FieldLabel>
-                        <FieldDescription>Used to index new documents</FieldDescription>
+                        <FieldDescription>Used to index new documents (always via Ollama)</FieldDescription>
                     </div>
-                    <Select value={preferences?.embeddingModel} onValueChange={(value) => update.mutate({ embeddingModel: value }, { onSuccess: saveOk })}>
+                    <Select
+                        value={preferences?.embeddingModel}
+                        onValueChange={(value) => update.mutate({ embeddingModel: value }, { onSuccess: saveOk })}
+                    >
                         <SelectTrigger className="w-44 font-mono text-xs">
                             <SelectValue />
                         </SelectTrigger>
