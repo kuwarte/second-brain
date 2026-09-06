@@ -38,7 +38,7 @@ public class UserPreferences {
 
     @Column(name = "chat_model", nullable = false)
     @Builder.Default
-    private String chatModel = "llama3.2";
+    private String chatModel = "qwen3.5:0.8b";
 
     @Column(name = "embedding_model", nullable = false)
     @Builder.Default
