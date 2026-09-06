@@ -1,6 +1,7 @@
 package com.kuwarte.api.preferences;
 
 import com.kuwarte.api.auth.User;
+import com.kuwarte.api.preferences.enums.ChatProvider;
 import com.kuwarte.api.preferences.enums.Theme;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -47,6 +48,11 @@ public class UserPreferences {
     @Column(name = "chunk_size", nullable = false)
     @Builder.Default
     private int chunkSize = 500;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "chat_provider", nullable = false)
+    @Builder.Default
+    private ChatProvider chatProvider = ChatProvider.OLLAMA;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(AccessLevel.NONE)

@@ -33,6 +33,9 @@ public class UserPreferencesService {
         if (request.theme() != null) {
             preferences.setTheme(request.theme());
         }
+        if (request.chatProvider() != null) {
+            preferences.setChatProvider(request.chatProvider());
+        }
         if (request.chatModel() != null && !request.chatModel().isBlank()) {
             preferences.setChatModel(request.chatModel());
         }
